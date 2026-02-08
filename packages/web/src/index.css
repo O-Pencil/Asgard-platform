@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Base */
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Wired Elements 适配 */
+wired-button, wired-input, wired-card, wired-checkbox {
+  font-family: inherit;
+}
+
+wired-button {
+  cursor: pointer;
+}
+
+wired-card {
+  display: block;
+}
