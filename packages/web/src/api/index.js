@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8083'
+const IS_DEV = import.meta.env.DEV || true // Vite 默认开发模式
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -9,11 +10,16 @@ const api = axios.create({
   },
 })
 
-// Add auth token to requests
+// Add auth token to requests (dev mode uses mock admin key)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (IS_DEV) {
+    // 开发模式：使用模拟 admin key
+    config.headers.Authorization = 'Bearer dev_admin_key'
+  } else {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })
@@ -28,9 +34,9 @@ export const authAPI = {
 // Agent APIs
 export const agentAPI = {
   list: (params) => api.get('/api/v1/agents', { params }),
-  get: (id) => api.get(`/api/v1/agents/${id}`),
-  enable: (id) => api.post(`/api/v1/agents/${id}/enable`),
-  disable: (id) => api.post(`/api/v1/agents/${id}/disable`),
+  get: (id) => api.get(`/api/v1/agents/${encodeURIComponent(id)}`),
+  enable: (id) => api.post(`/api/v1/agents/${encodeURIComponent(id)}/enable`),
+  disable: (id) => api.post(`/api/v1/agents/${encodeURIComponent(id)}/disable`),
 }
 
 // Console APIs
