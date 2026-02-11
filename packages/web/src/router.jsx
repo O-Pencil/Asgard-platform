@@ -5,6 +5,7 @@ import { useAuthStore } from './store'
 
 import Layout from './components/Layout'
 import AgentMarket from './pages/AgentMarket'
+import AgentChat from './pages/AgentChat'
 import ConsoleDashboard from './pages/console/Dashboard'
 import ConsoleKeys from './pages/console/Keys'
 import ConsoleUsage from './pages/console/Usage'
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: 'market',
         element: <AgentMarket />,
+      },
+      {
+        path: 'chat',
+        element: <AgentChat />,
       },
       {
         path: 'console',

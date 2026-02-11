@@ -28,6 +28,14 @@ export default function Layout() {
                 Agent 市场
               </NavLink>
               <NavLink
+                to="/chat"
+                className={() =>
+                  `text-sm font-medium ${currentPath.startsWith('/chat') ? 'text-indigo-600' : 'text-slate-600 hover:text-slate-900'}`
+                }
+              >
+                聊天
+              </NavLink>
+              <NavLink
                 to="/console"
                 className={() =>
                   `text-sm font-medium ${currentPath.startsWith('/console') ? 'text-indigo-600' : 'text-slate-600 hover:text-slate-900'}`
