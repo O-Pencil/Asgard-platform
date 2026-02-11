@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useAgents, useEnableAgent, useDisableAgent } from '../hooks/useAgents'
 import { useMarketStore } from '../store'
+import { toast } from 'react-hot-toast'
 
 const CATEGORIES = {
   dev: '开发',
@@ -33,14 +34,14 @@ const ALL_CAPABILITIES = [
 ]
 
 const MOCK_AGENTS = [
-  { id: 'asgard/code-refactor', name: '代码重构 Agent', desc: '自动化代码重构与风格统一', category: 'dev', capabilities: ['Code Review', 'Refactor'], context_window: 128000, pricing: 0.02, enabled: true },
-  { id: 'asgard/unit-test', name: '单元测试 Agent', desc: '生成高质量单元测试用例', category: 'dev', capabilities: ['Test', 'Coverage'], context_window: 64000, pricing: 0.015, enabled: false },
-  { id: 'asgard/hanhan-style', name: '韩寒风格 Agent', desc: '犀利、幽默、带点叛逆的杂文与随笔风格', category: 'writing', capabilities: ['杂文', '随笔', '青年视角'], context_window: 128000, pricing: 0.025, enabled: true },
-  { id: 'asgard/maoni-style', name: '猫腻叙事 Agent', desc: '网文大神级叙事节奏，伏笔与爽点把控', category: 'writing', capabilities: ['网文', '长篇叙事', '节奏把控'], context_window: 256000, pricing: 0.035, enabled: false },
-  { id: 'asgard/business-copywriting', name: '商业文案 Agent', desc: '品牌文案、营销软文、电商详情页', category: 'creative', capabilities: ['商业文案', '营销', '转化'], context_window: 64000, pricing: 0.018, enabled: false },
-  { id: 'asgard/scriptwriting', name: '剧本创作 Agent', desc: '影视剧本、分镜脚本、对白润色', category: 'creative', capabilities: ['剧本', '对白', '节奏'], context_window: 128000, pricing: 0.028, enabled: false },
-  { id: 'asgard/architect', name: '架构设计 Agent', desc: '系统架构与 Schema 设计建议', category: 'dev', capabilities: ['Schema Design', 'Architecture'], context_window: 256000, pricing: 0.03, enabled: false },
-  { id: 'asgard/data-insight', name: '数据洞察 Agent', desc: '商业数据分析与洞察报告生成', category: 'analysis', capabilities: ['数据分析', '报告', '可视化'], context_window: 128000, pricing: 0.022, enabled: false },
+  { id: 'asgard-code-refactor', name: '代码重构 Agent', desc: '自动化代码重构与风格统一', category: 'dev', capabilities: ['Code Review', 'Refactor'], context_window: 128000, pricing: 0.02, enabled: true },
+  { id: 'asgard-unit-test', name: '单元测试 Agent', desc: '生成高质量单元测试用例', category: 'dev', capabilities: ['Test', 'Coverage'], context_window: 64000, pricing: 0.015, enabled: false },
+  { id: 'asgard-hanhan-style', name: '韩寒风格 Agent', desc: '犀利、幽默、带点叛逆的杂文与随笔风格', category: 'writing', capabilities: ['杂文', '随笔', '青年视角'], context_window: 128000, pricing: 0.025, enabled: true },
+  { id: 'asgard-maoni-style', name: '猫腻叙事 Agent', desc: '网文大神级叙事节奏，伏笔与爽点把控', category: 'writing', capabilities: ['网文', '长篇叙事', '节奏把控'], context_window: 256000, pricing: 0.035, enabled: false },
+  { id: 'asgard-business-copywriting', name: '商业文案 Agent', desc: '品牌文案、营销软文、电商详情页', category: 'creative', capabilities: ['商业文案', '营销', '转化'], context_window: 64000, pricing: 0.018, enabled: false },
+  { id: 'asgard-scriptwriting', name: '剧本创作 Agent', desc: '影视剧本、分镜脚本、对白润色', category: 'creative', capabilities: ['剧本', '对白', '节奏'], context_window: 128000, pricing: 0.028, enabled: false },
+  { id: 'asgard-architect', name: '架构设计 Agent', desc: '系统架构与 Schema 设计建议', category: 'dev', capabilities: ['Schema Design', 'Architecture'], context_window: 256000, pricing: 0.03, enabled: false },
+  { id: 'asgard-data-insight', name: '数据洞察 Agent', desc: '商业数据分析与洞察报告生成', category: 'analysis', capabilities: ['数据分析', '报告', '可视化'], context_window: 128000, pricing: 0.022, enabled: false },
 ]
 
 export default function AgentMarket() {
@@ -108,10 +109,27 @@ export default function AgentMarket() {
   }, [agentList, searchQuery, category, capabilities, sortBy])
 
   const handleToggleAgent = (agentId, currentEnabled) => {
+    const agent = agents?.find(a => a.id === agentId)
+    const agentName = agent?.name || agentId
+
     if (currentEnabled) {
-      disableAgent.mutate(agentId)
+      disableAgent.mutate(agentId, {
+        onSuccess: () => {
+          toast.success(`已停用 ${agentName}`)
+        },
+        onError: () => {
+          toast.error(`停用 ${agentName} 失败`)
+        }
+      })
     } else {
-      enableAgent.mutate(agentId)
+      enableAgent.mutate(agentId, {
+        onSuccess: () => {
+          toast.success(`已启用 ${agentName}`)
+        },
+        onError: () => {
+          toast.error(`启用 ${agentName} 失败`)
+        }
+      })
     }
   }
 
