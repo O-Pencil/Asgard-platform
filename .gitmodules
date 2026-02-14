@@ -1,6 +1,9 @@
 [submodule "packages/api"]
 	path = packages/api
 	url = https://codeup.aliyun.com/67d1a8677564dc59f36547a9/Asgard-api.git
-[submodule "web"]
+	branch = feat/ai
+
+[submodule "packages/web"]
 	path = packages/web
 	url = https://codeup.aliyun.com/67d1a8677564dc59f36547a9/Asgard-prd.git
+	branch = feat/ai
