@@ -27,3 +27,6 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Pencil snapshot data - auto managed
+.Pencil/
