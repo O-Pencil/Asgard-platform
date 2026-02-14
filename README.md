@@ -7,15 +7,17 @@ Unified Agent Integration Platform - Monorepo
 ```
 asgard-platform/
 ├── packages/
-│   ├── web/          # Frontend (React + Vite + TailwindCSS)
+│   ├── web/          # Frontend (React + Vite) - Git Submodule
 │   │   ├── src/
 │   │   │   ├── App.jsx
 │   │   │   ├── main.jsx
 │   │   │   ├── pages/
 │   │   │   │   ├── AgentMarket.jsx    # Agent Marketplace
-│   │   │   │   └── Console.jsx       # Developer Console
-│   │   │   └── components/
-│   │   │       └── Layout.jsx
+│   │   │   │   ├── AgentChat.jsx      # Agent Chat
+│   │   │   │   └── Console.jsx        # Developer Console
+│   │   │   ├── components/
+│   │   │   │   └── Layout.jsx
+│   │   │   └── store/
 │   │   ├── package.json
 │   │   └── vite.config.js
 │   │
@@ -39,6 +41,10 @@ asgard-platform/
 │       ├── Dockerfile
 │       └── docker-compose.yml
 │
+├── scripts/
+│   ├── switch-submodules.sh    # Switch submodules to specified branch
+│   └── switch-submodules.bat   # Windows batch version
+│
 ├── README.md
 └── .gitmodules
 ```
@@ -48,7 +54,7 @@ asgard-platform/
 ### Frontend
 - **Framework**: React 19 + Vite
 - **Styling**: TailwindCSS 4 + Wired Elements
-- **Routing**: React Router DOM (planned)
+- **Routing**: React Router DOM
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
@@ -62,6 +68,10 @@ asgard-platform/
 - Browse and search available agents
 - Filter by category, capabilities, context window, pricing
 - Enable/disable agents
+
+### Agent Chat
+- Real-time chat with agents
+- Streaming response support
 
 ### Developer Console
 - API Key management (create, rotate, delete)
@@ -79,6 +89,18 @@ asgard-platform/
 - Node.js 18+
 - Python 3.11+
 - Docker & Docker Compose
+- Git
+
+### Clone and Initialize
+
+```bash
+# Clone the repository
+git clone https://codeup.aliyun.com/67d1a8677564dc59f36547a9/Asgard-platform.git
+cd asgard-platform
+
+# Initialize submodules and switch to feat/ai branch
+bash scripts/switch-submodules.sh init feat/ai
+```
 
 ### Frontend (packages/web)
 
@@ -110,6 +132,46 @@ uvicorn app.main:app --reload
 Access: http://localhost:8000
 API Docs: http://localhost:8000/docs
 
+## Git Submodule Management
+
+This project uses Git submodules for both `packages/api` and `packages/web`. All submodules are configured to use the `feat/ai` branch by default.
+
+### Using the Switch Script
+
+```bash
+# Initialize submodules and switch to branch (recommended)
+bash scripts/switch-submodules.sh init feat/ai
+
+# Or just switch to a branch (if submodules already exist)
+bash scripts/switch-submodules.sh feat/ai
+
+# Windows
+scripts\switch-submodules.bat init feat/ai
+```
+
+### Manual Commands
+
+```bash
+# Initialize submodules
+git submodule update --init --remote
+
+# Switch specific submodule to a branch
+cd packages/api
+git checkout feat/ai
+
+cd packages/web
+git checkout feat/ai
+```
+
+### Update Submodule Reference
+
+When you want to save the current submodule state to the parent repo:
+
+```bash
+git add packages/api packages/web
+git commit -m "chore: update submodules"
+```
+
 ## API Usage
 
 ### OpenAI Compatible Request
@@ -134,25 +196,6 @@ curl -X POST http://localhost:8000/v1/chat/completions \
 |----------|----------|-------------|
 | `asgard/code-refactor` | Development | Code analysis and refactoring |
 | `asgard/hanhan-style` | Writing | Han Han style creative writing |
-
-## Git Submodule Commands
-
-### Initialize submodules (after clone)
-```bash
-git submodule init
-git submodule update
-```
-
-### Update submodule to latest
-```bash
-cd packages/api
-git fetch
-git checkout main
-git pull origin main
-cd ../..
-git add packages/api
-git commit -m "chore: update api submodule"
-```
 
 ## License
 
