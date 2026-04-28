@@ -39,4 +39,5 @@
 
 - **Round 1-2**: 环境探索、源码分析、子模块初始化（Codeup→GitHub 迁移完成）
 - **Round 3**: 完成 harness 初始化 — 21 features、init.sh、progress-log
-- **Round 4**: 完成基础设施 feature 4/21 — config-gateway-settings、httpx-dependency、services-init-py、env-example-gateway。config.py 新增4项 Gateway 配置，requirements.txt httpx 移入正式依赖，services 包创建，.env.example 补充 Gateway 模板。
+- **Round 4**: 完成基础设施 feature 4/21 — config-gateway-settings、httpx-dependency、services-init-py、env-example-gateway。
+- **Round 5**: 完成核心服务层 feature 9/21 — pencil-gateway-service-create/proxy-chat-non-stream/proxy-chat-stream/create-agent 全部实现，schema-session-id 添加。PencilAgentBackend 类完整：__init__(httpx.AsyncClient)、_build_headers(4 headers)、proxy_chat(流式aiter_raw+非流式)、create_agent(POST /v1/agents)。ChatCompletionRequest 新增 session_id。

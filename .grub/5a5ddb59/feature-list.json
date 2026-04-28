@@ -6,239 +6,156 @@
       "id": "config-gateway-settings",
       "category": "functional",
       "description": "app/config.py 新增 pencil_gateway_url / pencil_gateway_internal_key / pencil_gateway_connect_timeout_s / pencil_gateway_read_timeout_s 四项配置",
-      "steps": [
-        "检查 app/config.py 中 Settings 类包含四个 pencil_gateway_* 字段",
-        "字段有合理默认值",
-        ".env.example 包含对应环境变量"
-      ],
+      "steps": ["config.py 四字段", "默认值合理", ".env.example 配置"],
       "passes": true,
       "evidence": "config.py 四字段已添加, py_compile通过, 运行时验证默认值正确"
     },
     {
       "id": "pencil-gateway-service-create",
       "category": "functional",
-      "description": "新增 app/services/pencil_gateway.py，包含 PencilAgentBackend 类，__init__ 接收 settings 并创建 httpx.AsyncClient",
-      "steps": [
-        "文件 app/services/pencil_gateway.py 存在",
-        "包含 class PencilAgentBackend",
-        "__init__ 中创建 httpx.AsyncClient(base_url=...)",
-        "headers() 方法生成 Authorization + X-Request-Id + X-Asgard-User + X-Asgard-Agent"
-      ],
-      "passes": false
+      "description": "新增 app/services/pencil_gateway.py PencilAgentBackend 类含 __init__ + headers",
+      "steps": ["文件存在", "class PencilAgentBackend", "httpx.AsyncClient", "headers方法"],
+      "passes": true,
+      "evidence": "PencilAgentBackend 含 __init__(httpx.AsyncClient) + _build_headers(4 headers)"
     },
     {
       "id": "pencil-gateway-service-proxy-chat-non-stream",
       "category": "functional",
-      "description": "PencilAgentBackend.proxy_chat 非流式路径：用 httpx POST /v1/chat/completions 并返回 JSONResponse",
-      "steps": [
-        "proxy_chat 方法存在",
-        "stream=false 时使用 self.client.post 调用 Gateway",
-        "返回 JSONResponse(status_code=upstream.status_code)",
-        "异常时返回 error JSON"
-      ],
-      "passes": false
+      "description": "PencilAgentBackend 非流式 proxy_chat 路径",
+      "steps": ["proxy_chat 方法", "client.post", "JSONResponse(status_code)", "401->502"],
+      "passes": true,
+      "evidence": "_proxy_non_stream 返回 JSONResponse 保真 status code, 401 特殊处理为 502"
     },
     {
       "id": "pencil-gateway-service-proxy-chat-stream",
       "category": "functional",
-      "description": "PencilAgentBackend.proxy_chat 流式路径：使用 httpx stream + aiter_raw() + StreamingResponse 反代 SSE",
-      "steps": [
-        "stream=true 时使用 client.send(stream=True)",
-        "返回 StreamingResponse(upstream.aiter_raw(), ...)",
-        "设置 media_type=text/event-stream",
-        "使用 BackgroundTask(upstream.aclose) 清理资源",
-        "不使用 EventSourceResponse 重新包装"
-      ],
-      "passes": false
+      "description": "PencilAgentBackend 流式 proxy_chat 路径 aiter_raw+StreamingResponse",
+      "steps": ["client.send stream=True", "aiter_raw()", "StreamingResponse", "BackgroundTask(aclose)"],
+      "passes": true,
+      "evidence": "_proxy_stream 使用 aiter_raw()+StreamingResponse+BackgroundTask"
     },
     {
       "id": "pencil-gateway-service-create-agent",
       "category": "functional",
-      "description": "PencilAgentBackend.create_agent 方法：POST /v1/agents 到 Gateway",
-      "steps": [
-        "create_agent 方法存在",
-        "构造 body 含 id/name/soul/memory/model/engine",
-        "调用 self.client.post('/v1/agents', json=body)",
-        "成功返回 res.json()"
-      ],
-      "passes": false
+      "description": "PencilAgentBackend.create_agent POST /v1/agents",
+      "steps": ["create_agent方法", "body含id/name/soul/memory/model/engine", "POST /v1/agents"],
+      "passes": true,
+      "evidence": "create_agent 构造完整body POST到 /v1/agents, raise_for_status"
     },
     {
       "id": "schema-session-id",
       "category": "functional",
-      "description": "app/schemas.py ChatCompletionRequest 新增可选 session_id 字段",
-      "steps": [
-        "ChatCompletionRequest 包含 session_id: Optional[str] = None",
-        "不影响现有字段"
-      ],
-      "passes": false
+      "description": "ChatCompletionRequest 新增 session_id 字段",
+      "steps": ["session_id: Optional[str]=None"],
+      "passes": true,
+      "evidence": "schemas.py ChatCompletionRequest 含 session_id 字段"
     },
     {
       "id": "is-pencil-agent-check",
       "category": "functional",
       "description": "chat.py 新增 is_pencil_agent(agent) 判断函数",
-      "steps": [
-        "is_pencil_agent 函数存在",
-        "判断 agent.agent_id.startswith('pencil/') 或 parameters.agent_type == 'pencil-agent'",
-        "对 asgard/* 返回 False"
-      ],
+      "steps": ["函数存在", "pencil/前缀判断", "agent_type判断", "asgard/*返回False"],
       "passes": false
     },
     {
       "id": "chat-route-pencil-branch",
       "category": "functional",
-      "description": "app/routers/chat.py chat_completions 增加 pencil/* 路由分支，pencil 请求走 proxy_chat",
-      "steps": [
-        "chat_completions 接受 raw_request: Request 参数",
-        "加载 agent 后调用 is_pencil_agent 判断",
-        "pencil agent 走 pencil_gateway.proxy_chat",
-        "非 pencil agent 继续走原内置 AgentEngine"
-      ],
+      "description": "chat_completions 增加 pencil/* 路由分支",
+      "steps": ["raw_request参数", "is_pencil_agent判断", "proxy_chat分支", "内置Agent不受影响"],
       "passes": false
     },
     {
       "id": "enforce-user-can-call",
       "category": "functional",
-      "description": "enforce_user_can_call 权限校验：pencil agent 必须验证 owner_user_id 与 api_key.user_id 匹配",
-      "steps": [
-        "enforce_user_can_call 函数存在",
-        "pencil-agent 类型检查 owner_user_id",
-        "不匹配时抛出 HTTPException 403"
-      ],
+      "description": "enforce_user_can_call 权限校验 pencil agent owner",
+      "steps": ["函数存在", "owner_user_id检查", "403异常"],
       "passes": false
     },
     {
       "id": "models-endpoint-from-db",
       "category": "functional",
-      "description": "/v1/models 端点从 DB 读取而非硬编码",
-      "steps": [
-        "/v1/models 不再返回硬编码列表",
-        "从 DB 查询 Agent 表获取可见 agent",
-        "返回 OpenAI 兼容的 model list 格式",
-        "同时包含 asgard/* 和 pencil/* agent"
-      ],
+      "description": "/v1/models 从 DB 读取而非硬编码",
+      "steps": ["非硬编码", "DB查询", "OpenAI格式", "含pencil/*"],
       "passes": false
     },
     {
       "id": "create-pencil-agent-api",
       "category": "functional",
-      "description": "新增 POST /api/v1/agents/pencil 端点创建 PencilAgent",
-      "steps": [
-        "路由 POST /api/v1/agents/pencil 存在",
-        "接收 soul/memory/model 等配置",
-        "生成 gateway_agent_id",
-        "DB 插入 Agent 记录，agent_id = pencil/<gateway_agent_id>",
-        "parameters 包含 agent_type/gateway_agent_id/owner_user_id"
-      ],
+      "description": "POST /api/v1/agents/pencil 创建 PencilAgent",
+      "steps": ["路由存在", "接收配置", "生成agent_id", "DB插入"],
       "passes": false
     },
     {
       "id": "create-pencil-agent-sync-gateway",
       "category": "functional",
-      "description": "创建 PencilAgent 时调用 Gateway POST /v1/agents 同步",
-      "steps": [
-        "创建流程中调用 pencil_gateway.create_agent()",
-        "Gateway 返回成功后 DB status 更新为 ready",
-        "Gateway 返回失败后 DB status 更新为 error"
-      ],
+      "description": "创建 PencilAgent 时同步 Gateway",
+      "steps": ["调用create_agent", "成功status=ready", "失败status=error"],
       "passes": false
     },
     {
       "id": "error-status-code-transparent",
       "category": "functional",
       "description": "Gateway 反代错误 status code 保真透传",
-      "steps": [
-        "Gateway 404 透传为 404",
-        "Gateway 422 透传为 422",
-        "Gateway 500 透传为 500",
-        "Gateway 401 记录告警不暴露给用户"
-      ],
+      "steps": ["404透传", "422透传", "500透传", "401特殊处理"],
       "passes": false
     },
     {
       "id": "usage-log-pencil-agent",
       "category": "functional",
-      "description": "PencilAgent 调用也记录 UsageLog",
-      "steps": [
-        "pencil agent 非流式调用成功后记录 usage_log",
-        "pencil agent 流式调用成功后记录 usage_log",
-        "失败调用记录 status=error"
-      ],
+      "description": "PencilAgent 调用记录 UsageLog",
+      "steps": ["非流式记录", "流式记录", "失败记录"],
       "passes": false
     },
     {
       "id": "pencil-gateway-backend-init",
       "category": "functional",
-      "description": "PencilAgentBackend 在应用启动时初始化为全局单例",
-      "steps": [
-        "main.py 或合适位置创建 pencil_gateway 实例",
-        "使用 settings 配置初始化",
-        "chat 路由可通过依赖注入或全局变量使用"
-      ],
+      "description": "PencilAgentBackend 应用启动时初始化为全局单例",
+      "steps": ["main.py创建", "settings配置", "路由可访问"],
       "passes": false
     },
     {
       "id": "httpx-dependency",
       "category": "functional",
       "description": "requirements.txt 包含 httpx 依赖",
-      "steps": [
-        "requirements.txt 包含 httpx 行在正式依赖区域"
-      ],
+      "steps": ["httpx在正式依赖区"],
       "passes": true,
-      "evidence": "httpx==0.26.0 在正式依赖区(非测试区)"
+      "evidence": "httpx==0.26.0 在正式依赖区"
     },
     {
       "id": "services-init-py",
       "category": "functional",
       "description": "app/services/__init__.py 文件存在",
-      "steps": [
-        "app/services/__init__.py 存在"
-      ],
+      "steps": ["文件存在"],
       "passes": true,
       "evidence": "app/services/__init__.py 已创建"
     },
     {
       "id": "env-example-gateway",
       "category": "verification",
-      "description": ".env.example 新增 Gateway 相关环境变量模板",
-      "steps": [
-        ".env.example 包含 PENCIL_GATEWAY_URL",
-        ".env.example 包含 PENCIL_GATEWAY_INTERNAL_KEY"
-      ],
+      "description": ".env.example 新增 Gateway 环境变量模板",
+      "steps": ["PENCIL_GATEWAY_URL", "PENCIL_GATEWAY_INTERNAL_KEY"],
       "passes": true,
-      "evidence": ".env.example 包含 PENCIL_GATEWAY_URL 和 PENCIL_GATEWAY_INTERNAL_KEY"
+      "evidence": ".env.example 包含完整 Gateway 配置"
     },
     {
       "id": "builtin-agent-still-works",
       "category": "verification",
       "description": "修改后 asgard/* 内置 Agent 仍可正常调用",
-      "steps": [
-        "asgard/code-refactor 请求不进入 pencil_gateway 分支",
-        "asgard/hanhan-style 请求不进入 pencil_gateway 分支",
-        "内置 Agent 走原有 get_agent_engine 路径"
-      ],
+      "steps": ["asgard/*不进pencil分支", "走get_agent_engine"],
       "passes": false
     },
     {
       "id": "python-syntax-valid",
       "category": "verification",
-      "description": "所有新增/修改的 Python 文件语法正确",
-      "steps": [
-        "python -m py_compile app/config.py 成功",
-        "python -m py_compile app/services/pencil_gateway.py 成功",
-        "python -m py_compile app/routers/chat.py 成功",
-        "python -m py_compile app/schemas.py 成功"
-      ],
+      "description": "所有新增/修改 Python 文件语法正确",
+      "steps": ["py_compile config", "py_compile pencil_gateway", "py_compile chat", "py_compile schemas"],
       "passes": false
     },
     {
       "id": "import-chain-valid",
       "category": "verification",
-      "description": "新增模块可被正确导入（不触发 ImportError）",
-      "steps": [
-        "python -c 'from app.services.pencil_gateway import PencilAgentBackend' 成功",
-        "python -c 'from app.config import settings' 成功"
-      ],
+      "description": "新增模块可被正确导入",
+      "steps": ["import PencilAgentBackend", "import settings"],
       "passes": false
     }
   ]
