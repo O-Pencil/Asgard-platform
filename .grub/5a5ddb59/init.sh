@@ -1,18 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Grub harness 启动脚本（get-bearings 协议）。请将下方烟测替换为项目专属命令，
-# 用来证明应用仍能端到端启动。
-
-echo "=== grub bearings ==="
+echo "=== grub bearings (5a5ddb59) ==="
+echo "--- pwd ---"
 pwd
 echo "--- recent commits ---"
-git log --oneline -n 20 2>/dev/null || true
+cd /d/Projects/Pencil/Asgard-platform && git log --oneline -n 10 2>/dev/null || true
 echo "--- working tree ---"
 git status --short 2>/dev/null || true
-echo "--- progress tail ---"
-tail -n 40 "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\progress-log.md" 2>/dev/null || true
+echo "--- submodule status ---"
+git submodule status 2>/dev/null || true
 echo "--- feature progress ---"
-node -e "try{const l=require("D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\feature-list.json");const p=l.features.filter(f=>f.passes).length;console.log(p+'/'+l.features.length+' passing');}catch(e){console.log('feature-list.json unavailable');}" 2>/dev/null || true
-echo "--- project smoke (override below) ---"
-# TODO: 项目专属烟测命令（tests、curl、tsc --noEmit 等）
+TOTAL=$(grep -c '"passes"' .grub/5a5ddb59/feature-list.json 2>/dev/null || echo 0)
+PASS=$(grep '"passes": true' .grub/5a5ddb59/feature-list.json 2>/dev/null | wc -l || echo 0)
+echo "${PASS}/${TOTAL} features passing"
+echo "--- progress tail ---"
+tail -n 40 .grub/5a5ddb59/progress-log.md 2>/dev/null || true
+echo "=== smoke: python syntax check ==="
+cd /d/Projects/Pencil/Asgard-platform/packages/api
+for f in app/config.py app/schemas.py app/main.py app/routers/chat.py app/auth.py; do
+  if [ -f "$f" ]; then
+    python -m py_compile "$f" 2>&1 && echo "  OK: $f" || echo "  FAIL: $f"
+  else
+    echo "  SKIP: $f (not found)"
+  fi
+done
+echo "=== bearings complete ==="
