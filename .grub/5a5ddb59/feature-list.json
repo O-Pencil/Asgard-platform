@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "goal": "Asgard 接入 Pencil Agent Gateway ，按照开发指南进行计划安排和开发，开发指南文档为Asgard-platform\\packages\\docs\\PENCIL_AGENT_GATEWAY_INTEGRATION.md。对应Pencil-Agent-Gateway仓库地址为D:\\Projects\\Pencil\\Pencil-Agent-Gateway",
+  "features": [
+    {
+      "id": "placeholder-expand-features",
+      "category": "functional",
+      "description": "Initializer must replace this placeholder with 15-40 concrete, end-to-end testable features.",
+      "steps": [
+        "Read the goal carefully",
+        "Enumerate atomic user-observable behaviors",
+        "Rewrite this file with proper features[] entries"
+      ],
+      "passes": false
+    }
+  ]
+}

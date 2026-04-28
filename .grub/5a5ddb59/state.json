@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "task": {
+    "id": "5a5ddb59",
+    "goal": "Asgard 接入 Pencil Agent Gateway ，按照开发指南进行计划安排和开发，开发指南文档为Asgard-platform\\packages\\docs\\PENCIL_AGENT_GATEWAY_INTEGRATION.md。对应Pencil-Agent-Gateway仓库地址为D:\\Projects\\Pencil\\Pencil-Agent-Gateway",
+    "locale": "zh",
+    "status": "running",
+    "phase": "initializer",
+    "startedAt": 1777391729981,
+    "updatedAt": 1777391729981,
+    "currentIteration": 1,
+    "awaitingTurn": false,
+    "consecutiveFailures": 0,
+    "maxIterations": 25,
+    "maxConsecutiveFailures": 3,
+    "harnessDirectory": "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59",
+    "featureChecklistPath": "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\feature-checklist.md",
+    "featureListPath": "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\feature-list.json",
+    "stateFilePath": "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\state.json",
+    "progressLogPath": "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\progress-log.md",
+    "initScriptPath": "D:\\Projects\\Pencil\\Asgard-platform\\.grub\\5a5ddb59\\init.sh"
+  },
+  "createdAt": 1777391729981,
+  "lastPersistedAt": 1777391729981
+}
