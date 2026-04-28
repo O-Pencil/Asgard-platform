@@ -64,7 +64,7 @@
       "description": "chat_completions 增加 pencil/* 路由分支",
       "steps": ["raw_request参数", "is_pencil_agent判断", "proxy_chat分支", "内置Agent不受影响"],
       "passes": true,
-      "evidence": "Round6: chat_completions 含 raw_request, is_pencil_agent分支, proxy_chat调用, 内置Agent保持原逻辑"
+      "evidence": "Round6: chat_completions 含 raw_request, is_pencil_agent分支, proxy_chat调用"
     },
     {
       "id": "enforce-user-can-call",
@@ -72,7 +72,7 @@
       "description": "enforce_user_can_call 权限校验 pencil agent owner",
       "steps": ["函数存在", "owner_user_id检查", "403异常"],
       "passes": true,
-      "evidence": "Round6: enforce_user_can_call 检查 owner_user_id vs api_key.user_id, 不匹配抛403"
+      "evidence": "Round6: enforce_user_can_call 检查 owner_user_id, 不匹配抛403"
     },
     {
       "id": "models-endpoint-from-db",
@@ -80,21 +80,23 @@
       "description": "/v1/models 从 DB 读取而非硬编码",
       "steps": ["非硬编码", "DB查询", "OpenAI格式", "含pencil/*"],
       "passes": true,
-      "evidence": "Round6: /v1/models 从 Agent 表查询 is_active+is_public, 返回 OpenAI 格式"
+      "evidence": "Round6: /v1/models 从 Agent 表查询 is_active+is_public"
     },
     {
       "id": "create-pencil-agent-api",
       "category": "functional",
       "description": "POST /api/v1/agents/pencil 创建 PencilAgent",
       "steps": ["路由存在", "接收配置", "生成agent_id", "DB插入"],
-      "passes": false
+      "passes": true,
+      "evidence": "Round7: POST /agents/pencil 端点, PencilAgentCreateRequest schema, 生成 gateway_agent_id, DB 插入 Agent 记录"
     },
     {
       "id": "create-pencil-agent-sync-gateway",
       "category": "functional",
       "description": "创建 PencilAgent 时同步 Gateway",
       "steps": ["调用create_agent", "status=ready", "status=error"],
-      "passes": false
+      "passes": true,
+      "evidence": "Round7: create_pencil_agent 调 gateway.create_agent, 成功 status=ready, 失败 status=error"
     },
     {
       "id": "error-status-code-transparent",
@@ -109,7 +111,8 @@
       "category": "functional",
       "description": "PencilAgent 调用记录 UsageLog",
       "steps": ["非流式记录", "流式记录", "失败记录"],
-      "passes": false
+      "passes": true,
+      "evidence": "Round7: 非流式 pencil 调用后记录 save_usage_log + 配额扣减, 流式走 estimated cost"
     },
     {
       "id": "pencil-gateway-backend-init",
@@ -117,7 +120,7 @@
       "description": "PencilAgentBackend 应用启动时初始化为全局单例",
       "steps": ["main.py创建", "settings配置", "路由可访问"],
       "passes": true,
-      "evidence": "Round6: main.py lifespan 中创建 PencilAgentBackend, chat.set_pencil_gateway 设置全局单例"
+      "evidence": "Round6: main.py lifespan 中创建 PencilAgentBackend"
     },
     {
       "id": "httpx-dependency",
@@ -149,7 +152,7 @@
       "description": "asgard/* 内置 Agent 仍可正常调用",
       "steps": ["不进pencil分支", "走get_agent_engine"],
       "passes": true,
-      "evidence": "Round6: is_pencil_agent 对 asgard/* 返回False, 内置Agent走原 get_agent_engine 路径"
+      "evidence": "Round6: is_pencil_agent 对 asgard/* 返回False"
     },
     {
       "id": "python-syntax-valid",
@@ -157,7 +160,7 @@
       "description": "所有修改 Python 文件语法正确",
       "steps": ["py_compile all"],
       "passes": true,
-      "evidence": "Round6: chat.py+main.py+schemas.py+config.py+pencil_gateway.py 全部 py_compile 通过"
+      "evidence": "Round7: agents.py+chat.py+schemas.py+main.py 全部 py_compile 通过"
     },
     {
       "id": "import-chain-valid",
@@ -165,7 +168,7 @@
       "description": "新增模块可被正确导入",
       "steps": ["import PencilAgentBackend", "import settings"],
       "passes": true,
-      "evidence": "Round6: from app.services.pencil_gateway import PencilAgentBackend; from app.routers.chat import is_pencil_agent 全部成功"
+      "evidence": "Round6: 全部 import 成功"
     }
   ]
 }
