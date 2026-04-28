@@ -4,19 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Asgard Platform is a unified AI agent integration platform with an OpenAI-compatible API. It's a monorepo with two Git submodules:
-- **packages/api** - Backend (Python FastAPI)
-- **packages/web** - Frontend (React + Vite)
-
-All development happens on the `feat/ai` branch.
+Asgard Platform is a unified AI agent integration platform with an OpenAI-compatible API. It's a monorepo with two Git submodules hosted on GitHub:
+- **packages/api** - Backend (Python FastAPI) → `O-Pencil/Asgard-api`
+- **packages/web** - Frontend (React + Vite) → `O-Pencil/Asgard-web`
 
 ## Commands
 
 ### Initialize Project (after clone)
 
 ```bash
-# Initialize submodules and switch to feat/ai branch
-bash scripts/switch-submodules.sh init feat/ai
+git submodule update --init --remote
 ```
 
 ### Frontend Development
@@ -50,13 +47,9 @@ git commit -m "chore: update submodules"
 
 ### Monorepo Structure
 
-This is a Git submodule-based monorepo. The parent repo (`Asgard-platform`) references two external repositories:
-- `packages/api` → Asgard-api.git (backend)
-- `packages/web` → Asgard-prd.git (frontend)
-
-### Branch Convention
-
-All submodules should use `feat/ai` branch for development. Use `scripts/switch-submodules.sh` to manage branch switching.
+This is a Git submodule-based monorepo. The parent repo (`Asgard-platform`) references two GitHub repositories:
+- `packages/api` → `git@github.com:O-Pencil/Asgard-api.git` (backend, branch: `main`)
+- `packages/web` → `git@github.com:O-Pencil/Asgard-web.git` (frontend, branch: `main`)
 
 ### API Backend (packages/api)
 
@@ -66,18 +59,20 @@ FastAPI application with:
 - JWT + API Key authentication
 - SSE streaming support
 - Agent registry pattern in `app/routers/chat.py`
+- Redis caching + rate limiting middleware
+- Ollama LLM integration for agent execution
 
 See `packages/api/CLAUDE.md` for detailed backend architecture.
 
 ### Frontend (packages/web)
 
 React 19 + Vite application with:
-- React Router DOM for routing
-- TailwindCSS 4 for styling
-- State management via store (likely Zustand or similar)
+- TailwindCSS 4 + Wired Elements for styling
+- Agent Marketplace page
+- Developer Console page
 
 ## Important Notes
 
-- When editing code in submodules, commits go to the submodule's own repository
+- When editing code in submodules, commits go to the submodule's own GitHub repository
 - Parent repo commits only track submodule commit references
-- Both submodules must be on `feat/ai` branch before making parent repo commits
+- All submodules use the `main` branch

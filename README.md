@@ -95,11 +95,11 @@ asgard-platform/
 
 ```bash
 # Clone the repository
-git clone https://codeup.aliyun.com/67d1a8677564dc59f36547a9/Asgard-platform.git
+git clone git@github.com:O-Pencil/Asgard-platform.git
 cd asgard-platform
 
-# Initialize submodules and switch to feat/ai branch
-bash scripts/switch-submodules.sh init feat/ai
+# Initialize submodules
+git submodule update --init --remote
 ```
 
 ### Frontend (packages/web)
@@ -134,33 +134,29 @@ API Docs: http://localhost:8000/docs
 
 ## Git Submodule Management
 
-This project uses Git submodules for both `packages/api` and `packages/web`. All submodules are configured to use the `feat/ai` branch by default.
+This project uses Git submodules for both `packages/api` and `packages/web`. All submodules use the `main` branch.
 
-### Using the Switch Script
+| Submodule | GitHub Repository | Branch |
+|-----------|-------------------|--------|
+| `packages/api` | `O-Pencil/Asgard-api` | `main` |
+| `packages/web` | `O-Pencil/Asgard-web` | `main` |
+
+### Initialize Submodules
 
 ```bash
-# Initialize submodules and switch to branch (recommended)
-bash scripts/switch-submodules.sh init feat/ai
-
-# Or just switch to a branch (if submodules already exist)
-bash scripts/switch-submodules.sh feat/ai
-
-# Windows
-scripts\switch-submodules.bat init feat/ai
+# After cloning the parent repo
+git submodule update --init --remote
 ```
 
 ### Manual Commands
 
 ```bash
-# Initialize submodules
-git submodule update --init --remote
+# Update submodules to latest remote
+git submodule update --remote
 
 # Switch specific submodule to a branch
 cd packages/api
-git checkout feat/ai
-
-cd packages/web
-git checkout feat/ai
+git checkout main
 ```
 
 ### Update Submodule Reference
