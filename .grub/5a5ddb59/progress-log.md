@@ -40,4 +40,5 @@
 - **Round 1-2**: 环境探索、源码分析、子模块初始化（Codeup→GitHub 迁移完成）
 - **Round 3**: 完成 harness 初始化 — 21 features、init.sh、progress-log
 - **Round 4**: 完成基础设施 feature 4/21 — config-gateway-settings、httpx-dependency、services-init-py、env-example-gateway。
-- **Round 5**: 完成核心服务层 feature 9/21 — pencil-gateway-service-create/proxy-chat-non-stream/proxy-chat-stream/create-agent 全部实现，schema-session-id 添加。PencilAgentBackend 类完整：__init__(httpx.AsyncClient)、_build_headers(4 headers)、proxy_chat(流式aiter_raw+非流式)、create_agent(POST /v1/agents)。ChatCompletionRequest 新增 session_id。
+- **Round 5**: 完成核心服务层 feature 9/21 — pencil-gateway-service-create/proxy-chat-non-stream/proxy-chat-stream/create-agent 全部实现，schema-session-id 添加。
+- **Round 6**: 完成路由层 feature 18/21 — is-pencil-agent-check、chat-route-pencil-branch、enforce-user-can-call、models-endpoint-from-db、pencil-gateway-backend-init、error-status-code-transparent、builtin-agent-still-works、python-syntax-valid、import-chain-valid。chat.py 重构：新增 is_pencil_agent + enforce_user_can_call + pencil 路由分支。main.py：lifespan 初始化 PencilAgentBackend，/v1/models 改为 DB 查询。剩余 3 个：create-pencil-agent-api、create-pencil-agent-sync-gateway、usage-log-pencil-agent。
