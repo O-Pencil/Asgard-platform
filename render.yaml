@@ -1,0 +1,128 @@
+# Render Blueprint — Asgard 个人体验版（3 服务）
+#
+# pencil-gateway  → 私有（pserv），仅 asgard-api 可达
+# asgard-api      → 公开 web，FastAPI + InsForge Postgres
+# asgard-web      → 公开 web，nginx 静态站
+#
+# 服务间地址通过 fromService 自动注入；secrets（DATABASE_URL、provider key、
+# admin 密码、ALLOWED_HOSTS）在 Render dashboard 里手动填，sync: false 标记。
+#
+# 部署顺序：Apply Blueprint 后，先填完 sync: false 的值，再触发部署；
+# pencil-gateway 起来 → asgard-api 起来 → 拿到 asgard-api 的公网 URL 填回
+# asgard-web.ASGARD_API_ORIGIN 与 asgard-api.ALLOWED_HOSTS。
+
+services:
+  # ---------------------------------------------------------------
+  # 1. Pencil Agent Gateway — 私有服务，nano-pencil 引擎
+  # ---------------------------------------------------------------
+  - name: pencil-gateway
+    type: pserv
+    runtime: docker
+    region: oregon
+    plan: starter
+    repo: https://github.com/O-Pencil/Pencil-Agent-Gateway
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: HOST
+        value: 0.0.0.0
+      - key: LOG_LEVEL
+        value: info
+      - key: DATA_DIR
+        value: /app/data
+      - key: SHUTDOWN_TIMEOUT_MS
+        value: "10000"
+      # 服务间共享密钥，asgard-api 用同一把作为 PENCIL_GATEWAY_INTERNAL_KEY
+      - key: API_KEY
+        generateValue: true
+      # Provider keys — 至少填一个，对应 PencilAgent.model.provider 的值
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+
+  # ---------------------------------------------------------------
+  # 2. Asgard API — FastAPI，连 InsForge Postgres
+  # ---------------------------------------------------------------
+  - name: asgard-api
+    type: web
+    runtime: docker
+    region: oregon
+    plan: starter
+    repo: https://github.com/O-Pencil/Asgard-api
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      # InsForge 的 Postgres 连接串。可填 postgres:// 或 postgresql://，
+      # API 启动时会规范化为 postgresql+asyncpg://（见 app/config.py）。
+      - key: DATABASE_URL
+        sync: false
+      # 共享内部密钥从 pencil-gateway 注入
+      - key: PENCIL_GATEWAY_INTERNAL_KEY
+        fromService:
+          type: pserv
+          name: pencil-gateway
+          envVarKey: API_KEY
+      # 网关私有地址（host:port），api 用它构造 PENCIL_GATEWAY_URL
+      - key: PENCIL_GATEWAY_HOSTPORT
+        fromService:
+          type: pserv
+          name: pencil-gateway
+          property: hostport
+      - key: PENCIL_GATEWAY_CONNECT_TIMEOUT_S
+        value: "5.0"
+      - key: PENCIL_GATEWAY_READ_TIMEOUT_S
+        value: ""
+      # 默认 provider/model — 用户在 UI 创建 Agent 不填时回退用这两个
+      - key: PENCIL_DEFAULT_PROVIDER
+        value: openai
+      - key: PENCIL_DEFAULT_MODEL
+        value: gpt-4.1-mini
+      # 单用户体验模式：API 起来时自建 admin + api-key
+      - key: SINGLE_USER_MODE
+        value: "true"
+      - key: ADMIN_EMAIL
+        value: admin@asgard.dev
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DB_TABLE_PREFIX
+        value: asgard_
+      # JWT — Blueprint 自动生成强随机
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      # 浏览器 CORS 白名单：第一次部署后把 asgard-web 公网 URL 填进来
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DEBUG
+        value: "false"
+
+  # ---------------------------------------------------------------
+  # 3. Asgard Web — Vite 产物 + nginx
+  # ---------------------------------------------------------------
+  - name: asgard-web
+    type: web
+    runtime: docker
+    region: oregon
+    plan: starter
+    repo: https://github.com/O-Pencil/Asgard-web
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      # 第一次部署后把 asgard-api 公网 URL 填进来
+      # 例：https://asgard-api-xxxx.onrender.com
+      - key: ASGARD_API_ORIGIN
+        sync: false
+      # 与 api 端 ADMIN_* 保持一致，否则 auto-login 401
+      - key: ADMIN_EMAIL
+        value: admin@asgard.dev
+      - key: ADMIN_PASSWORD
+        sync: false
