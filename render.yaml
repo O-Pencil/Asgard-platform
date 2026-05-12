@@ -38,7 +38,13 @@ services:
       # 服务间共享密钥，asgard-api 用同一把作为 PENCIL_GATEWAY_INTERNAL_KEY
       - key: API_KEY
         generateValue: true
-      # Provider keys — 至少填一个，对应 PencilAgent.model.provider 的值
+      # Provider keys — 至少填一个，对应 PencilAgent.model.provider 的值。
+      # 这些 env 只是 fallback；每个 PencilAgent 在 Asgard UI 里创建时
+      # 通常会带自己的 model.apiKey，覆盖这些 env。
+      - key: MINIMAX_CODING_API_KEY
+        sync: false
+      - key: DASHSCOPE_CODING_API_KEY
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
@@ -81,9 +87,9 @@ services:
         value: ""
       # 默认 provider/model — 用户在 UI 创建 Agent 不填时回退用这两个
       - key: PENCIL_DEFAULT_PROVIDER
-        value: openai
+        value: minimax-coding
       - key: PENCIL_DEFAULT_MODEL
-        value: gpt-4.1-mini
+        value: MiniMax-M2.5
       # 单用户体验模式：API 起来时自建 admin + api-key
       - key: SINGLE_USER_MODE
         value: "true"
