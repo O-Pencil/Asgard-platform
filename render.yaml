@@ -23,7 +23,10 @@ services:
     repo: https://github.com/O-Pencil/Pencil-Agent-Gateway
     branch: main
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /healthz
+    # Note: `healthCheckPath` is Web-services-only per Render Blueprint spec.
+    # pserv health is determined by the Dockerfile's HEALTHCHECK directive
+    # (which we have — `node -e ... /healthz`). Render watches for the
+    # container reporting healthy through Docker.
     envVars:
       - key: PORT
         value: "8080"
